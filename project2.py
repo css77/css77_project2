@@ -27,13 +27,14 @@ def main(dest_name, port, max_hops):
     while True:
         recv_socket, send_socket = create_sockets(ttl)
         recv_socket.bind(("", port))
+        recv_socket.settimeout(2)
         send_socket.sendto("", (dest_name, port))
         curr_addr = None
         curr_name = None
         try:
             # socket.recvfrom() gives back (data, address), but we
             # only care about the latter.
-            _, curr_addr = recv_socket.recvfrom(512)
+            data, curr_addr = recv_socket.recvfrom(512)
             curr_addr = curr_addr[0]  # address is given as tuple
             try:
                 curr_name = socket.gethostbyaddr(curr_addr)[0]
