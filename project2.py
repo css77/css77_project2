@@ -94,13 +94,15 @@ if __name__ == "__main__":
     file = open('output.csv', 'w')
     file.write('Site,TTL,RTT\n')    
 
-    sites = ['google.com', 'linkedin.com', 'kickass.to',
-             'empowernetwork.com', 'usps.com', 't-online.de',
-             'xunlei.com', 'scoop.it', 'dreamstime.com',
-             'mpnrs.com', 'golsearch.com', 'gazzetta.it']
+    sites = ['google.com', 'linkedin.com', 'reddit.com',
+             'youtube.com', 'conduit.com', 't-online.de',
+             'xhamster.com', 'cnet.com', 'sohu.com',
+             'mpnrs.com', 'nytimes.com', 'indeed.com']
     
     for site in sites:
+        print "Trying site: %s" % site
         ttl, rtt = main(site, port, max_hops)
         print "Finished %s with TTL: %r and RTT: %r" % (site, ttl, rtt)
+        print
         file.write("%s,%d,%r\n" % (site, ttl, rtt))
     file.close()
