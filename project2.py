@@ -94,7 +94,10 @@ if __name__ == "__main__":
     file = open('output.csv', 'w')
     file.write('Site,TTL,RTT\n')    
 
-    sites = ['google.com']
+    sites = ['google.com', 'linkedin.com', 'kickass.to',
+             'empowernetwork.com', 'usps.com', 't-online.de',
+             'xunlei.com', 'scoop.it', 'dreamstime.com',
+             'mpnrs.com', 'golsearch.com', 'gazzetta.it']
     
     for site in sites:
         ttl, rtt = main(site, port, max_hops)
