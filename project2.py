@@ -15,8 +15,8 @@ udp = socket.getprotobyname('udp')
 
 def create_sockets(ttl):
     """
-    Sets up sockets necessary for the traceroute.  We need a receiving
-    socket and a sending socket.
+    Sets up sockets necessary for the traceroute.
+    We need a receiving socket and a sending socket.
     """
     recv_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
     send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, udp)
@@ -24,15 +24,21 @@ def create_sockets(ttl):
     return recv_socket, send_socket
 
 def main(dest_name, port, max_hops):
+    """
+    Uses binary search to find the TTL and RTT of a given host.
+    Returns TTL, RTT tuple.
+    """
     dest_addr = socket.gethostbyname(dest_name)
     ttl = 1
     rtt = -1
+    rtt_good = -1
     min_window = 0
     max_window = max_hops
     while True:
         if max_window - min_window <= 1:
+            #we've reached the end of the binary search
             print
-            return ttl, rtt
+            return max_window, rtt_good
         ttl = (min_window + max_window) / 2
         recv_socket, send_socket = create_sockets(ttl)
         recv_socket.bind(("", port))
@@ -43,26 +49,32 @@ def main(dest_name, port, max_hops):
         type = -1
         code = -1
         try:
-            # socket.recvfrom() gives back (data, address), but we
-            # only care about the latter.
+            #start the rtt clock timer
             send_time = time.time()
             data, curr_addr = recv_socket.recvfrom(512)
+            #close the rtt upon receival of the socket data
             rtt = time.time() - send_time
+            #retrieve the type and code from the data
             icmp_header = data[20:22]
             type, code = struct.unpack('bb', icmp_header)
             if type == 3 and code == 3:
+                #we've reached the destination, try decreaing ttl
                 max_window = ttl
+                rtt_good = rtt
             elif type == 11 and code == 0:
+                #we failed to reach the destination, try increasing ttl
                 min_window = ttl
             else:
                 print "Type and code not recognized"
                 return -1, -1
-            curr_addr = curr_addr[0]  # address is given as tuple
+            curr_addr = curr_addr[0]
             try:
+                #try to resolve the host name using the IP address
                 curr_name = socket.gethostbyaddr(curr_addr)[0]
             except socket.error:
                 curr_name = curr_addr
-        except socket.error: # Timeout, most likely
+        except socket.error:
+            #timeout, most likely
             min_window = ttl
         finally:
             send_socket.close()
@@ -79,8 +91,13 @@ def main(dest_name, port, max_hops):
 if __name__ == "__main__":
     port = 33434
     max_hops = 30
+    file = open('output.csv', 'w')
+    file.write('Site,TTL,RTT\n')    
 
     sites = ['google.com']
     
     for site in sites:
-        main(site, port, max_hops)
+        ttl, rtt = main(site, port, max_hops)
+        print "Finished %s with TTL: %r and RTT: %r" % (site, ttl, rtt)
+        file.write("%s,%d,%r\n" % (site, ttl, rtt))
+    file.close()
