@@ -14,16 +14,15 @@ def main(dest_name):
     udp = socket.getprotobyname('udp')
     ttl = 1
     while True:
-        # open connections
         recv_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp)
-        send_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, udp)
+        send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, udp)
         send_socket.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
         recv_socket.bind(("", port))
         send_socket.sendto("", (dest_name, port))
         curr_addr = None
         curr_name = None
         try:
-            data, curr_addr = recv_socket.recvfrom(512)
+            _, curr_addr = recv_socket.recvfrom(512)
             curr_addr = curr_addr[0]
             try:
                 curr_name = socket.gethostbyaddr(curr_addr)[0]
@@ -35,18 +34,13 @@ def main(dest_name):
             send_socket.close()
             recv_socket.close()
 
-        # print data
         if curr_addr is not None:
             curr_host = "%s (%s)" % (curr_name, curr_addr)
         else:
             curr_host = "*"
-
         print "%d\t%s" % (ttl, curr_host)
 
-
         ttl += 1
-
-        # break if useful
         if curr_addr == dest_addr or ttl > max_hops:
             break
 
