@@ -1,14 +1,13 @@
 """
-Example code from https://blogs.oracle.com/ksplice/entry/learning_by_doing_writing_your
+For a list of sites, finds the hop count, round trip time, and time to live.
+Sample traceroute code from https://blogs.oracle.com/ksplice/entry/learning_by_doing_writing_your
 """
 
 __author__ = 'Casey Stoessl'
 
-import optparse
 import time
 import struct
 import socket
-import sys
 
 icmp = socket.getprotobyname('icmp')
 udp = socket.getprotobyname('udp')
@@ -58,7 +57,7 @@ def main(dest_name, port, max_hops):
             icmp_header = data[20:22]
             type, code = struct.unpack('bb', icmp_header)
             if type == 3 and code == 3:
-                #we've reached the destination, try decreaing ttl
+                #we've reached the destination, try decreasing ttl
                 max_window = ttl
                 rtt_good = rtt
             elif type == 11 and code == 0:
